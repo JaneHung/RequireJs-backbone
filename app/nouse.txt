@@ -1,0 +1,55 @@
+var RightView = {
+		checkView: function(viewName,callBack){
+			if(location.hash.indexOf('.html') < 0 ){ //哈希里没有带html
+				var viewUrl = '';
+				if($('#js-menus li').length > 0){
+					viewUrl = $('#js-menus li a').attr('href').split('#')[1];
+				}
+				location.hash = viewUrl;  
+			}else{
+				var hostUrl = window.location.host;
+				function getHash(){
+					return hostUrl+'/js'+viewUrl.replace('/template/','/').replace('.html','.js');
+				}
+				var viewUrl = location.hash.substr(1),
+				    jsUrl = getHash();
+
+			}
+		}
+	},
+	openView: function(elemName,callBack){
+		var menus = $(elemName.menus),
+			menusElm = menus.find('a'),
+			view = $(elemName.view);
+			menusElm.click(function() {
+				var this = $(this);
+				if(this.hasClass(elemName.item)){
+					var viewUrl = this.attr('href').substr(1),
+					jsUrl = (function(){
+						return hostUrl+'/js'+viewUrl.replace('template','').replace('.html','.js');
+					})();
+					this.parent().addClass('active')
+					.siblings().removeClass('active');
+					view.load(hostUrl+'/html'+viewUrl,function() {
+						callBack && callBack(jsUrl);
+					});
+				}else{
+					if(this.parent('li').hasClass('active')){
+						this.parent('li').removeClass('active');
+					}else{
+						this.parent('li').addClass('active')
+						.siblings().removeClass('active');
+					}
+					return false;
+				}
+			});
+	};
+	RightView.checkView('#js-view',function(jsUrl,viewUrl){
+		require([jsUrl],function(jsUrlFun){
+			$('#js-menus li a[href="?#'+viewUrl+'"]').parent().addClass('active')
+			.siblings().removeClass('active');
+		});
+	});
+	$(window).on('hashchange', function(event){
+		location.reload();
+	})
